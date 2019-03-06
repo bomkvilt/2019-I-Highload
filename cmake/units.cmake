@@ -72,11 +72,7 @@ endmacro()
 # set unit's folder in .vs project
 #
 macro(setup_folder)
-	if (bFlat) 	
-		set(_path "${unit_root}")
-	else()
-		set(_path "${unit_root}/..")
-	endif()
+	set(_path "${unit_root}/..")
 	file(RELATIVE_PATH _category "${ENGINE_ROOT}" "${_path}")
 	SET_TARGET_PROPERTIES(${unitName} PROPERTIES FOLDER "${_category}")
 endmacro()
@@ -159,7 +155,6 @@ macro(Module)
 	add_library(${unitName} 
 		${headers} 
 		${sources}
-		${INCLUDES}
 	)
 	setup_folder() 
 	defineUnit()
@@ -175,10 +170,24 @@ macro(Application)
 	add_executable(${unitName} 
 		${headers} 
 		${sources}
-		${INCLUDES}
 	)
 	setup_properties()
 	setup_libs()
 	setup_folder()
+	defineUnit()
+endmacro()
+
+# 
+#
+macro(CodeBase)
+	setup_modules()
+	setup_source()
+	setup_includes()
+	add_custom_target(${unitName} 
+		SOURCES ${headers} 
+		SOURCES ${sources}
+	)
+	setup_settings()
+	setup_folder() 
 	defineUnit()
 endmacro()
