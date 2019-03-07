@@ -4,6 +4,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 INCLUDE("cmake/setup.cmake")
 INCLUDE("cmake/units.cmake")
 Init_solution("Highload")
+set(bPrintSubmodules off)
 SetupEvniroment()
 #~~~~~~~~~~~~~~~~~~~~~~~| >> init project |
 SUBDIRS(internal)

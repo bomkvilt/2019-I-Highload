@@ -6,6 +6,8 @@
 # public  variable		 -  <Variable_Name>
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+set(bPrintSubmodules off)
+
 # add unit's sources/headers to the project
 #
 macro(setup_source)
@@ -38,10 +40,14 @@ macro(setup_modules)
 	list(APPEND modules ${Modules})
 	# remove duplicates
 	list(REMOVE_DUPLICATES modules)
+	# dubug
+	if (bPrintSubmodules)
+		message("---|${unitName}|${modules}")
+	endif()
 endmacro()
 
 
-# add required includes (from other modules and 3rdParty)
+# add required includes (from another modules and 3rdParty)
 #
 macro(setup_includes)
 	# get public includes from assigned units
