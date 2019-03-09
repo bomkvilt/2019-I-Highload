@@ -154,7 +154,7 @@ endmacro()
 
 macro(setup_includes)
 	# get unit's includes
-	set(_includes ${public_dir} ${test_dir} ${Includes_private} ${Includes} ${Units_test_inc})
+	set(_includes ${public_dir} ${test_dir} ${private_dir} ${Includes_private} ${Includes} ${Units_test_inc})
 	# get unit's units' includes
 	foreach(_module ${modules})
 		get_property(_unit_dir GLOBAL PROPERTY ${_module}_DIR)
