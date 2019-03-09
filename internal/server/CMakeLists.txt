@@ -1,3 +1,3 @@
 Unit(server)
-set(Modules	common boost)
+set(Modules	configs boost)
 Module()
