@@ -1,3 +1,3 @@
-Unit(server)
-set(Modules	configs boost)
-Module()
+CreateUnit(
+    Name server
+    Modules configs boost)

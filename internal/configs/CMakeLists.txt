@@ -1,3 +1,3 @@
-Unit(configs)
-set(Modules reflect)
-Module()
+CreateUnit(
+    Name configs 
+    Modules reflect)

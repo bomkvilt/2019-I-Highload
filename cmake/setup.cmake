@@ -10,9 +10,6 @@ macro(SetupEvniroment)
 		# Multiprocessor support
 		set(CMAKE_CXX_FLAGS			"${CMAKE_CXX_FLAGS}			/MP")
 	endif()
-
-	# policy warning fix...
-	if (POLICY CMP0074)
-		cmake_policy(SET CMP0074 NEW)
-	endif()
+	# asio c++17 warnings...
+	add_compile_definitions(_SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING)
 endmacro()

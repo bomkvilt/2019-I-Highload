@@ -1,0 +1,33 @@
+#
+# unit test test project
+#
+
+include(GoogleTest)
+
+# required modules
+get_property(_modules GLOBAL PROPERTY UN_test_projects)
+
+# create a testing target
+CreateUnit(
+    Name            ${UN_tests_target}
+    Modules         ${_modules}
+    Libraries       gtest gtest_main
+    Definitions     "-Dall_load"
+    Mode            "app"
+    bFlat           off)
+
+# create a ctest
+add_test(
+    NAME    ${UN_tests_target} 
+    COMMAND ${UN_tests_test})
+gtest_discover_tests(${UN_tests_target})
+
+# move to specified filter
+foreach(target gtest gtest_main ${UN_tests_target})
+    set_target_properties(${target} PROPERTIES FOLDER ${UN_tests_filter})
+    endforeach()
+
+# enable initialisation of static variable inside static libraries...
+foreach(_module ${_modules})
+    SET_TARGET_PROPERTIES(${UN_tests_target} PROPERTIES LINK_FLAGS_DEBUG "/WHOLEARCHIVE:${_module}")
+    endforeach()

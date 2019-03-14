@@ -1,3 +1,4 @@
-Unit(reflect)
-set(Modules	common boost)
-Module()
+CreateUnit(
+    Name reflect
+    Modules common boost)
+

@@ -1,3 +1,4 @@
-Unit(common)
-set(bFlat on)
-HeaderLibrary()
+CreateUnit(
+    Name common
+    Mode "headers"
+    bFlat on)

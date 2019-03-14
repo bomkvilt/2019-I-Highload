@@ -1,0 +1,17 @@
+set(Boost_USE_STATIC_RUNTIME off)
+set(Boost_USE_STATIC_LIBS    off)
+set(Boost_USE_MULTITHREADED  on)
+find_package(Boost REQUIRED 
+    filesystem 
+    date_time 
+    thread
+    system
+    regex)
+
+CreateUnit(
+    Name            boost
+    Libraries       ${Boost_LIBRARIES} 
+    Public_includes ${Boost_INCLUDE_DIR}
+    Definitions     -DBOOST_ALL_DYN_LINK -DBOOST_ALL_NO_LIB ${Boost_LIB_DIAGNOSTIC_DEFINITIONS}
+    Mode            "headers"
+    bFlat           on)

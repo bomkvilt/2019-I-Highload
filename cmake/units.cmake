@@ -1,265 +1,351 @@
-# Cmake code style:
-# private macro/function -  <function_name>
-# public  macro/function -  <Function_name>
-# local   variable		 - _<variable_name>
-# private variable		 -  <variable_name>
-# public  variable		 -  <Variable_name>
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-set(Units_bDebug 	off			CACHE BOOL "Print unit debug information")
-set(Units_bTests 	on			CACHE BOOL "Enable tests")
-set(Units_cpp 		17			CACHE STRING "C++ standart")
-set(Units_private	"Private"	CACHE STRING "Unit private directory")
-set(Units_public	"Public" 	CACHE STRING "Unit public directory")
-set(Units_data		"Data"		CACHE STRING "Unit data directory")
-set(Units_test		"Test"		CACHE STRING "Unit test directory")
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# define solution
-#
-macro(Init_solution _project_name) # -> ENGINE_ROOT
-	project(${_project_name} NONE)
-	set(CMAKE_CXX_STANDARD ${Units_cpp})
-	set(ENGINE_ROOT ${PROJECT_SOURCE_DIR})
-
-	setup_test_enviroment()
-endmacro()
-
-# define project
-#
-macro(Add_project _project_path)
-	SUBDIRS(${_project_path})
-endmacro()
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# define new unit (module / application)
-#
-macro(Unit _name)
-	#-------------------------------------------------# interface variables
-	set(Modules)			# required modules
-	set(Includes_private)	# include files from 3rdParty
-	set(Includes)			# include files from 3rdParty
-	set(Libs)				# .lib 	  files from 3tdParty
-	set(bFlat off)			# disable public | private | data subdirs
-	#-------------------------------------------------# internal variables
-	set(unit_root)			# unit root directory
-	set(public_dir)			# found includes for the unit
-	set(private_dir)		# found sources for the unit
-	set(data_dir)         	# folder with module resources
-	set(test_dir)			# folder with test files
-	set(modules)			# all project modules = Modules + Modules' modules + ...
-	set(libs)				# unit's libs
-	set(test_files)			# unit's test files
-	set(public_files)		# unit's public files
-	set(private_files)		# unit's private files
-	set(unit_name ${_name})	# unit name
-	#-------------------------------------------------# unit defenition
-	project(${unit_name})	# create a cmake project
-	set(unit_root ${PROJECT_SOURCE_DIR})
-	set(CMAKE_CXX_STANDARD ${Units_cpp})
-endmacro()
-
-# use the unit as an module
-#
-macro(Module)
-	setup_unit()
-	add_library(${unit_name} 
-		${public_files} 
-		${private_files}
-		${test_files}
-	)
-	setup_unit_end(on)
-	setup_test()
-endmacro()
-
-# use the unit as an application
-#
-macro(Application)
-	setup_unit()
-	add_executable(${unit_name} 
-		${public_files} 
-		${private_files}
-		${test_files}
-	)
-	target_link_libraries(${unit_name} ${libs})
-	setup_properties()
-	setup_unit_end(off)
-endmacro()
-
-# 
-#
-macro(HeaderLibrary)
-	setup_unit()
-	add_custom_target(${unit_name} 
-		SOURCES ${public_files} 
-		SOURCES ${private_files}
-		SOURCES ${test_files}
-	)
-	setup_definitions()
-	setup_unit_end(off)
-endmacro()
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-macro(setup_unit)
-	setup_modules()
-	setup_source()
-	setup_includes()
-	setup_definitions()
-	setup_libs()
-endmacro()
-
-macro(setup_unit_end _bLink)
-	setup_project_filter()
-	defineUnit(${_bLink})
-endmacro()
-
-macro(setup_source)
-	# code directories
-	if (bFlat)
-		set(private_dir "")
-		set(public_dir	"")
-		set(data_dir	"")
-		set(test_dir	"")
-	else()
-		set(private_dir "${Units_private}/")
-		set(public_dir  "${Units_public}/")
-		set(data_dir    "${Units_data}/")
-		set(test_dir	"${Units_test}/")
-	endif()
-	# find unit files
-	file(GLOB_RECURSE private_files "${private_dir}*")
-	file(GLOB_RECURSE public_files	"${public_dir}*")
-	file(GLOB_RECURSE test_files	"${test_dir}*")
-	# add the files into a unit's code tree
-	source_group(TREE ${unit_root} FILES ${private_files})
-	source_group(TREE ${unit_root} FILES ${public_files})
-	source_group(TREE ${unit_root} FILES ${test_files})
-endmacro()
-
-macro(setup_modules)
-	# get the unit's units
-	set(modules "" ${Modules})
-	# get the unit's units' units 
-	foreach(_module ${Modules})
-		get_property(_modules GLOBAL PROPERTY ${_module}_MOD)
-		list(APPEND modules ${_modules})
-	endforeach()
-	# remove duplicates
-	list(REMOVE_DUPLICATES modules)
-	# print the units
-	if (Units_bDebug)
-		message("---|${unit_name} \t|${modules}")
-	endif()
-endmacro()
-
-macro(setup_includes)
-	# get unit's includes
-	set(_includes ${public_dir} ${test_dir} ${private_dir} ${Includes_private} ${Includes} ${Units_test_inc})
-	# get unit's units' includes
-	foreach(_module ${modules})
-		get_property(_unit_dir GLOBAL PROPERTY ${_module}_DIR)
-		list(APPEND _includes ${_unit_dir}) 
-	endforeach()
-	# add the includes into the unit
-	include_directories(${_includes})
-endmacro()
-
-macro(setup_libs)
-	# get unit's libs
-	set(libs "" ${Libs})
-	# get unit's units' libs
-	foreach(_module ${modules})
-		get_property(_unit_lib GLOBAL PROPERTY ${_module}_LIB)
-		get_property(_unit_lnk GLOBAL PROPERTY ${_module}_LNK)
-		list(APPEND libs ${_unit_lib})
-		if (NOT ${_unit_lnk})
-			list(APPEND rems ${_module})
-		endif()
-	endforeach()
-	# remove none-linking modules
-	list(REMOVE_ITEM libs "" ${rems})
-	# print the libs
-	if (Units_bDebug)
-		message("---{${unit_name} \t}${libs}")
-	endif()
-endmacro()
-
-macro(setup_project_filter)
-	set(_path "${unit_root}/..")
-	file(RELATIVE_PATH _category "${ENGINE_ROOT}" "${_path}")
-	set_target_properties(${unit_name} PROPERTIES FOLDER "${_category}")
-endmacro()
-
-macro(setup_properties)
-	set_target_properties(${unit_name} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${ENGINE_ROOT})
-endmacro()
-
-macro(defineUnit _bLink)
-	# absolute include paths
-	get_filename_component(_public_dir "${public_dir}" ABSOLUTE)
-	get_filename_component(_pubIncs    "${Includes}"   ABSOLUTE)
-	# combine export states
-	set(_public_dirs ${_public_dir} ${_pubIncs} )
-	set(_public_libs ${unit_name}    ${Libs}     )
-	# set global properties
-	set_property(GLOBAL PROPERTY ${unit_name}_DIR ${_public_dirs})
-	set_property(GLOBAL PROPERTY ${unit_name}_LIB ${_public_libs})
-	set_property(GLOBAL PROPERTY ${unit_name}_MOD ${modules})
-	set_property(GLOBAL PROPERTY ${unit_name}_LNK ${_bLink})
-endmacro()
-
-macro(setup_definitions)
-	file(RELATIVE_PATH _category "${ENGINE_ROOT}" "${unit_root}")
-	add_compile_definitions(DATA_DIR="${_category}/${data_dir}")
-endmacro()
-
-macro(setup_test)
-	set(test_name "${unit_name}_exe")
-	add_executable(${test_name}
-		${public_files} 
-		${private_files}
-		${test_files}
-	)
-	gtest_discover_tests(${test_name})
-	add_test(NAME ${test_name}_unit COMMAND ${test_name})
-	target_link_libraries(${test_name} ${libs} ${Units_test_lib})
-	set_target_properties(${test_name} PROPERTIES FOLDER "__tests__")
-endmacro()
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~| Units' settings
+# common settings
+set(UN_bDebug 	        off		        CACHE BOOL "Print unit debug information")
+set(UN_bTests 	        on		        CACHE BOOL "Enable tests")
+set(UN_cpp_version 		17		        CACHE STRING "C++ standart")
+# directory settings
+set(UN_dir_private	    "Private"       CACHE STRING "Unit private directory")
+set(UN_dir_public	    "Public"        CACHE STRING "Unit public directory")
+set(UN_dir_data		    "Data"	        CACHE STRING "Unit data directory")
+set(UN_dir_test		    "Test"	        CACHE STRING "Unit test directory")
+# test settings
+set(UN_tests_filter	    "_tests_"       CACHE STRING "Filter name for all test projects")
+set(UN_tests_target     "tests_exe"     CACHE STRING "test target")
+set(UN_tests_test       "tests_test"    CACHE STRING "test name")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~| Initialisatoin
 
-macro(setup_test_enviroment)
-	# download gtest repo
-	if (NOT Units_test_downloaded)
-		# download and unpack googletest at configure time
-		configure_file("cmake/test.cmake" "googletest-download/CMakeLists.txt")
-		execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-			RESULT_VARIABLE result
-			WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/googletest-download")
-		if(result)
-			message(FATAL_ERROR "CMake step for googletest failed: ${result}")
-		endif()
-		execute_process(COMMAND ${CMAKE_COMMAND} --build .
-			RESULT_VARIABLE result
-			WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/googletest-download")
-		if(result) 
-			message(FATAL_ERROR "Build step for googletest failed: ${result}")
-		endif()
-		# prevent next updates
-		set(Units_test_downloaded on CACHE BOOL "" FORCE)
-	endif()
-	# 
+## create a solution and perform it's setting up
+#
+macro(CreateSolution _name)
+    # create a solution project
+    project(${_name} NONE)
+    set(CMAKE_CXX_STANDARD ${UN_cpp_version})
+    
+    # setup envitroment
+    set_property(GLOBAL PROPERTY UN_test_projects "")
+    set(UN_dir_solution ${PROJECT_SOURCE_DIR})
+    UN_setup_policies()
+
+    # test enviroment
+    set(UN_test_includes "" CACHE STRING "")
+    if (UN_bTests)
+        UN_setup_test_enviroment()
+        endif()
+    endmacro()
+
+## perform a final solution processing
+#
+macro(ProcessSolution)
+    if (UN_bTests)
+        UN_setup_tests()
+        endif()
+    endmacro()
+
+## add solution subrirectory
+#
+macro(AddSubdirectory _path)
+    SUBDIRS(${_path})
+    endmacro()
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~| Units
+
+## creates a unit with the folowing params:
+#   \ Name                      - unit name
+#   \ Modules           = {}    - list of depending modules             | inherits
+#   \ Private_includes  = {}    - list of private external include dirs | 
+#   \ Public_includes   = {}    - list of public  external include dirs | inherits
+#   \ Libraries         = {}    - list of depending external libs       | inherits
+#   \ Definitions       = {}    - list of preprocessor defenitions      | inherits
+#   \ bFlat             = off   - [on|off] whether the unit uses separated public/private/test directories
+#   \ Mode              = lib   - [...] type of unit will be built
+#       \ lib       - create a static library
+#       \ app       - create an executable
+#       \ headers   - create a target with no binary output
+function(CreateUnit)
+    # parse arguments
+    UN_parse_arguments(${ARGN})
+    UN_check_arguments()
+    # create cmake project
+    UN_create_project()
+    # setup directories
+    UN_setup_directories()
+    if (UN_bDebug)
+        message("")
+        message("|${Name}::${Mode}::${dir_root}|")
+        endif()
+    # setup cmake project and find all required values
+    UN_setup_modules(modules "${Modules}" ${Name})
+    UN_setup_libs(libs "${Libraries}" "${modules}" ${Name})
+    UN_setup_source(files_private ${dir_private} ${dir_root})
+    UN_setup_source(files_public  ${dir_public}  ${dir_root})
+    UN_setup_source(files_test    ${dir_test}    ${dir_root})
+    UN_setup_includes(
+        Includes    ${dir_private} ${dir_public} ${dir_test} ${Private_includes} ${Public_includes} ${UN_test_includes}
+        Modules     ${modules})
+        
+    # create a target
+    if (${Mode} STREQUAL "lib")
+        add_library(${Name} 
+            ${files_public} 
+            ${files_private}
+            ${files_test})
+        set(bLink on)
+        endif()
+    if (${Mode} STREQUAL "app")
+        add_executable(${Name} 
+            ${files_public} 
+            ${files_private}
+            ${files_test})
+        target_link_libraries(${Name} ${libs})
+        set_target_properties(${Name} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${UN_dir_solution})
+        set(bLink off)
+        endif()
+    if (${Mode} STREQUAL "headers")
+        add_custom_target(${Name} 
+            SOURCES ${files_public} 
+            SOURCES ${files_private}
+            SOURCES ${files_test})
+        set(bLink off)
+        endif()
+    # setup target properties
+    UN_setup_definitions(definitions ${Name} ${dir_root} ${dir_data} "${Definitions}" "${modules}")
+    UN_setup_filter(${Name} ${dir_root})
+    UN_define_unit(${Name} 
+        "${dir_public}"
+        "${Public_includes}"
+        "${libs}"
+        "${modules}"
+        "${definitions}"
+        "${bLink}")
+    endfunction()
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~| Unit utils
+#~~~~~~~~~~~~~| defines
+
+set(UN_module_suffix "_MOD")
+set(UN_public_suffix "_PUB")
+set(UN_libraty_suffix "_LIB")
+set(UN_linkage_suffix "_LNK")
+set(UN_definition_suffix "_DEF")
+
+#~~~~~~~~~~~~~| macro
+
+macro(UN_parse_arguments)
+    set(_one_value_args     bFlat Mode Name)
+    set(_multy_value_args   Modules Private_includes Public_includes Libraries Definitions)
+    cmake_parse_arguments(
+        ""
+        ""
+        "${_one_value_args}"
+        "${_multy_value_args}"
+        ${ARGN})
+    foreach(variable ${_options} ${_one_value_args} ${_multy_value_args})
+        set(${variable} "${_${variable}}")
+        endforeach()
+    endmacro()
+
+macro(UN_check_arguments)
+    if (NOT Name)
+        message(FATAL_ERROR "Unit name must be set")
+        endif()
+    if (NOT bFlat)
+        set(bFlat off)
+        endif()
+    if (NOT Mode)
+        set(Mode "lib")
+        endif()
+    endmacro()
+
+macro(UN_create_project)
+    project(${Name})
+    set(CMAKE_CXX_STANDARD ${UN_cpp_version})
+    endmacro()
+
+macro(UN_setup_directories)
+    set(dir_root ${PROJECT_SOURCE_DIR})
+    if (bFlat)
+        set(dir_private ".")
+        set(dir_public  ".")
+        set(dir_data    ".")
+        set(dir_test    ".")
+    else()
+        set(dir_private ${UN_dir_private})
+        set(dir_public  ${UN_dir_public})
+        set(dir_data    ${UN_dir_data})
+        set(dir_test    ${UN_dir_test})
+        endif()
+    endmacro()
+
+#~~~~~~~~~~~~~| functions
+
+function(UN_setup_modules _all_modules _modules _unit_name)
+    # find all depending modules to a scope list
+    set(_tmp_list ${_modules})
+    foreach(_module ${_modules})
+        get_property(_submodules GLOBAL PROPERTY ${_module}${UN_module_suffix})
+        list(APPEND _tmp_list ${_submodules})
+        endforeach()
+    list(REMOVE_DUPLICATES _tmp_list)
+    # print the found modules
+    if (UN_bDebug)
+		message("--   modules: \t ${_tmp_list}")
+        endif()
+    # move the modules to a parent scope variable
+    UN_return(${_all_modules} "${_tmp_list}")
+    endfunction()
+
+function(UN_setup_libs _all_libs _libs _modules _unit_name)
+    # find all depending libs to a scope list
+    set(_tmp_list ${_libs} "")
+    foreach(_module ${_modules})
+        get_property(_sublibs GLOBAL PROPERTY ${_module}${UN_libraty_suffix})
+        get_property(_bLink   GLOBAL PROPERTY ${_module}${UN_linkage_suffix})
+        list(APPEND _tmp_list ${_sublibs} ${_module})
+        if (NOT _bLink)
+            list(APPEND _rm_list ${_module})
+            endif()
+        endforeach()
+    list(REMOVE_DUPLICATES _tmp_list)
+    list(REMOVE_ITEM _tmp_list ${_rm_list} "")
+    # print the found libs
+    if (UN_bDebug)
+        message("-- libraries: \t ${_tmp_list}")
+        endif()
+    # move the libs to a parent scope variable
+    UN_return(${_all_libs} "${_tmp_list}")
+    endfunction()
+
+function(UN_setup_source _sources _directory _root)
+    # find files and add them to the source group
+    file(GLOB_RECURSE _files "${_directory}/*")
+    source_group(TREE ${_root} FILES ${_files})
+    # move the files to a parent scope variable
+    UN_return(${_sources} "${_files}")
+    endfunction()
+
+function(UN_setup_includes)
+    # parse arguments
+    set(_prefix ""      )
+    set(_options        )
+    set(_one_value_args )
+    set(_multy_value_args   Includes Modules)
+    cmake_parse_arguments(
+        "${_prefix}"
+        "${_options}"
+        "${_one_value_args}"
+        "${_multy_value_args}"
+        ${ARGN})
+    # find include directories and include them
+    set(_includes ${_Includes})
+    foreach(_module ${_Modules})
+        get_property(_public GLOBAL PROPERTY ${_module}${UN_public_suffix})
+        list(APPEND _includes ${_public})
+        endforeach()
+    include_directories(${_includes})
+    endfunction()
+
+function(UN_setup_filter _unit_name _unit_root)
+    file(RELATIVE_PATH _category "${UN_dir_solution}" "${_unit_root}/..")
+    set_target_properties(${_unit_name} PROPERTIES FOLDER "${_category}")
+    endfunction()
+
+function(UN_define_unit _unit_name _dir_public _Public_includes _libs _modules _definitions _bLink)
+    # absolute paths
+    get_filename_component(_abs_public "${_dir_public}" ABSOLUTE)
+    get_filename_component(_abs_includes "${_Public_includes}" ABSOLUTE)
+    set(_publics ${_abs_public} ${_abs_includes})
+    # set global properties
+    set_property(GLOBAL PROPERTY ${_unit_name}${UN_module_suffix}     ${_modules}       )
+	set_property(GLOBAL PROPERTY ${_unit_name}${UN_public_suffix}     ${_publics}       )
+	set_property(GLOBAL PROPERTY ${_unit_name}${UN_libraty_suffix}    ${_libs}          )
+    set_property(GLOBAL PROPERTY ${_unit_name}${UN_linkage_suffix}    ${_bLink}         )
+    set_property(GLOBAL PROPERTY ${_unit_name}${UN_definition_suffix} ${_definitions}   )
+    # register to tests
+    if (_bLink)
+        get_property(_modules GLOBAL PROPERTY UN_test_projects)
+        list(APPEND _modules ${_unit_name})
+        set_property(GLOBAL PROPERTY UN_test_projects ${_modules})
+        endif()
+    endfunction()
+
+function(UN_setup_definitions _all_defines _unit_name _unit_root _dir_data _definitions _modules)
+    # get inherited defines
+    foreach(_module ${_modules})
+        get_property(_subdefs GLOBAL PROPERTY ${_module}${UN_definition_suffix})
+        list(APPEND _definitions ${_subdefs} "")
+        endforeach()
+    list(REMOVE_DUPLICATES _definitions)
+    list(REMOVE_ITEM _definitions "")
+    UN_return(${_all_defines} "${_definitions}")
+    
+    # data directory
+    file(RELATIVE_PATH _category "${UN_dir_solution}" "${_unit_root}/..")
+    list(APPEND _definitions "-DDATA_DIR=${_category}/${_dir_data}")
+    
+    # print debug
+    if (UN_bDebug)
+        message("--   defines: \t ${_definitions}")
+        endif()
+    
+        # apply defenitions
+    foreach(_define ${_definitions})
+        add_definitions(${_define})
+        endforeach()
+    endfunction()
+
+macro(UN_return _name _value)
+    set(${_name} "${_value}" PARENT_SCOPE)
+    endmacro()
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~| Solution utils
+
+macro(UN_setup_policies)
+	cmake_policy(SET CMP0074 NEW)
+	cmake_policy(SET CMP0079 NEW)
+    endmacro()
+
+function(UN_setup_test_enviroment)
+	# download gtest to a build directory
+	UN_download_gtest()
+	# setup gtest enviroment
 	include(GoogleTest)
-	# add a testing target
 	enable_testing()
-	# prevent overriding the parent project's compiler/linker
 	set(gtest_force_shared_crt off CACHE BOOL "" FORCE)
-	# add googletest directly to our build
 	add_subdirectory(
 		"${CMAKE_CURRENT_BINARY_DIR}/googletest-src"
 		"${CMAKE_CURRENT_BINARY_DIR}/googletest-build"
-		EXCLUDE_FROM_ALL)
-	# define test framework
-	set(Units_test_inc "${gtest_SOURCE_DIR}/include")
-	set(Units_test_lib gtest_main)
-endmacro()
+        EXCLUDE_FROM_ALL)
+    set(UN_test_includes "${gtest_SOURCE_DIR}/include" CACHE STRING "" FORCE)
+    endfunction()
+
+function(UN_setup_tests)
+    # copy a testing app to build directory and configure it
+    AddSubdirectory("cmake/units")
+    endfunction()
+    
+function(UN_download_gtest)
+	if (NOT Units_test_downloaded)
+		# download and unpack googletest at configure time
+        configure_file("cmake/units/test.cmake" "googletest-download/CMakeLists.txt")
+        execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+        	RESULT_VARIABLE result
+        	WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/googletest-download")
+        if(result)
+        	message(FATAL_ERROR "CMake step for googletest failed: ${result}")
+        	endif()
+        execute_process(COMMAND ${CMAKE_COMMAND} --build .
+        	RESULT_VARIABLE result
+        	WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/googletest-download")
+        if(result) 
+        	message(FATAL_ERROR "Build step for googletest failed: ${result}")
+        	endif()
+        # prevent next updates
+		set(Units_test_downloaded on CACHE BOOL "" FORCE)
+    endif()
+    endfunction()

@@ -1,4 +1,6 @@
-Unit(cmd)
-set(bFlat on)
-set(Modules )
-Application()
+CreateUnit(
+    Name    cmd
+    bFlat   on
+    Modules server
+    Mode    "app"
+    )

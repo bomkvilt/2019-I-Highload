@@ -1,4 +1,4 @@
-subdirs(__libs__/boost)
+subdirs(libs/boost)
 subdirs(common)
 subdirs(reflect)
 subdirs(configs)
