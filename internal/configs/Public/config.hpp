@@ -15,4 +15,4 @@ public:
 };
 
 
-#endif // CONFIG_HPP
+#endif //!CONFIG_HPP

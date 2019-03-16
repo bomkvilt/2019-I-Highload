@@ -1,5 +1,5 @@
-#ifndef TYPE_CONVERSION_HPP
-#define TYPE_CONVERSION_HPP
+#ifndef TYPECONVERSION_HPP
+#define TYPECONVERSION_HPP
 #pragma once
 
 #include <sstream>
@@ -109,4 +109,4 @@ struct String2Type<_T, true, true>
 };
 
 
-#endif // !TYPE_CONVERSION_HPP
+#endif //!TYPECONVERSION_HPP

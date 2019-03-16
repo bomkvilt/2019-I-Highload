@@ -1,5 +1,5 @@
-#ifndef ARCHIVABLE_HPP
-#define ARCHIVABLE_HPP
+#ifndef ARCHIVED_HPP
+#define ARCHIVED_HPP
 #pragma once
 
 #include <string>
@@ -91,4 +91,4 @@ struct is_base_of<_B, _T, true> : public std::is_base_of<_B, std::remove_pointer
 	ARCHIVATION_BEGIN()													\
 /**/
 
-#endif // !ARCHIVABLE_HPP
+#endif //!ARCHIVED_HPP
