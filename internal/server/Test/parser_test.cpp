@@ -1,5 +1,5 @@
 #include "tests_common.hpp"
-#include "request.hpp"
+#include "parser.hpp"
 
 
 TEST(SERVER_SUITE, parser_simple) 
@@ -27,8 +27,7 @@ TEST(SERVER_SUITE, parser_simple)
 	std::string_view sw(s);
 
 	using namespace server;
-	HTTPHeader header;
-	HTTPParser(sw).Parse(header);
+	HTTPHeader header = HTTPParser(sw).Parse();
 
 	EXPECT_EQ(header.method	, "GET"	);
 	EXPECT_EQ(header.url	, URI	);
