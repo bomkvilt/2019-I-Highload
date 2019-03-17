@@ -12,7 +12,7 @@
 
 namespace server
 {
-	class CSession final : public boost::enable_shared_from_this<CSession>
+	class CSession final : public std::enable_shared_from_this<CSession>
 	{
 	public:
 		SSTcp::socket& GetSocket()

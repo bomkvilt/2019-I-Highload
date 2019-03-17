@@ -44,14 +44,11 @@ namespace server::IServerImpl
 			{
 				return;
 			}
-			if (error)
-			{
-				StartAccept();
-			}
-			else
+			if (!error)
 			{
 				session->Start();
 			}
+			StartAccept();
 		}
 
 	private:
