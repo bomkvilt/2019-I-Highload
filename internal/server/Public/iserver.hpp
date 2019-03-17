@@ -12,11 +12,18 @@ namespace server
 			ARCHIVATION_MEMBER("", port)
 			ARCHIVATION_MEMBER("", threads)
 			ARCHIVATION_MEMBER("", fileDirectory)
+			ARCHIVATION_MEMBER("", defaultURI)
+			ARCHIVATION_MEMBER("", mainConfig)
 			ARCHIVATION_END()
 	public:
 		unsigned short port;
 		unsigned short threads;
 		std::string fileDirectory;
+		std::string defaultURI;
+		std::string mainConfig;
+
+	public:
+		void LoadFromFile(const std::string& file) override;
 	};
 
 

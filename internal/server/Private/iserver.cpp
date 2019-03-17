@@ -1,6 +1,7 @@
 #include "iserver.hpp"
 #include "server_common.hpp"
 #include "session.hpp"
+#include <fstream>
 
 
 namespace server::IServerImpl 
@@ -65,6 +66,42 @@ namespace server::IServerImpl
 
 namespace server 
 {
+	void FServerConfig::LoadFromFile(const std::string& file)
+	{
+		FConfig::LoadFromFile(file);
+		if (mainConfig == "")
+		{
+			return;
+		}
+
+		auto config = std::ifstream(mainConfig, std::ios::in);
+		if (!config.is_open())
+		{
+			throw std::runtime_error("Cannot open mainFile");
+		}
+			
+		auto line = std::string();
+		while (std::getline(config, line))
+		{
+			auto ss = std::stringstream(line);
+			auto key = std::string(); ss >> key;
+			
+			if (key.front() == '#')
+			{
+				continue;
+			}
+			if (key == "cpu_limit")
+			{
+				ss >> threads;
+			}
+			else if (key == "document_root")
+			{
+				ss >> fileDirectory;
+			}
+		}
+	}
+
+
 	UNIQUE(IServer) IServer::Create(const FServerConfig& config)
 	{
 		return std::make_unique<IServerImpl::FServer>(config);

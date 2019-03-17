@@ -3,21 +3,27 @@
 #pragma once
 
 #include "parser.hpp"
-#include <string_view>
+#include "response.hpp"
 
 
 namespace server
 {
 	struct FRequest
 	{
-		FRequest(std::string_view request, FServerConfig config)
-			: request(request)
-			, config(config)
-		{}
+	public:
+		FRequest(std::string_view request, FServerConfig config);
 
-		void Parse(std::function<void(std::string_view)> callback);
+		FResponse Parse();
 
 	private:
+		FResponse OnGet();
+		FResponse OnHead();
+		FResponse OnUnknownMethed();
+
+		std::tuple<fs::path, bool> GetPath(std::string_view relativePath);
+
+	private:
+		std::string header_url; //!< RAII for updated @header.url
 		std::string_view request;
 		FServerConfig config;
 		HTTPHeader header;

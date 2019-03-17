@@ -22,9 +22,12 @@ namespace server
 			{	/// empty line
 				if (phase == eEmptyLine)
 				{	/// second line -> body
-					auto data = &(*++pos);
-					size_t len = std::distance(pos, end);
-					header.body = { data, len };
+					if (pos < end && ++pos < end)
+					{
+						auto data = &(*pos);
+						size_t len = std::distance(pos, end);
+						header.body = { data, len };
+					}
 					return header;
 				}
 				else

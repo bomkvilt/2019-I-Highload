@@ -1,8 +1,10 @@
 #include "tests_common.hpp"
 #include "parser.hpp"
 
+#define SERVER_PAERSER_TESTS server_parser_tests
 
-TEST(SERVER_SUITE, parser_simple) 
+
+TEST(SERVER_PAERSER_TESTS, parser_simple) 
 {
 	const std::string body = "binary body:jhabjkcnm kjOFKVMSD ZVNSLD ZVBZK NAKVJKZJDN MZ KJLC" HTTP_LINE;
 	const std::string URI = "/tutorials/other/top-20-mysql-best-practices/";
@@ -23,14 +25,51 @@ TEST(SERVER_SUITE, parser_simple)
 	ss << HTTP_LINE;
 	ss << HTTP_LINE;
 	ss << body;
-	std::string s = ss.str();
-	std::string_view sw(s);
+	const std::string s = ss.str();
 
 	using namespace server;
-	HTTPHeader header = HTTPParser(sw).Parse();
+	HTTPHeader header = HTTPParser(s).Parse();
 
 	EXPECT_EQ(header.method	, "GET"	);
 	EXPECT_EQ(header.url	, URI	);
 	EXPECT_EQ(header.body	, body	);
 	EXPECT_EQ(header.conentLenght, "350");
+}
+
+TEST(SERVER_PAERSER_TESTS, parser_no_body)
+{
+	const std::string body = "binary body:jhabjkcnm kjOFKVMSD ZVNSLD ZVBZK NAKVJKZJDN MZ KJLC" HTTP_LINE;
+	const std::string URI = "/tutorials/other/top-20-mysql-best-practices/";
+	std::stringstream ss;
+	ss << "GET " << URI << " HTTP/1.1" << HTTP_LINE;
+	ss << "Host: net.tutsplus.com" << HTTP_LINE;
+	ss << HTTP_LINE;
+	ss << HTTP_LINE;
+	const std::string s = ss.str();
+
+	using namespace server;
+	HTTPHeader header = HTTPParser(s).Parse();
+
+	EXPECT_EQ(header.method, "GET");
+	EXPECT_EQ(header.url, URI);
+	EXPECT_EQ(header.body, "");
+	EXPECT_EQ(header.conentLenght, "");
+}
+
+TEST(SERVER_PAERSER_TESTS, parser_no_sepparation)
+{
+	const std::string body = "binary body:jhabjkcnm kjOFKVMSD ZVNSLD ZVBZK NAKVJKZJDN MZ KJLC" HTTP_LINE;
+	const std::string URI = "/tutorials/other/top-20-mysql-best-practices/";
+	std::stringstream ss;
+	ss << "GET " << URI << " HTTP/1.1" << HTTP_LINE;
+	ss << "Host: net.tutsplus.com" << HTTP_LINE;
+	const std::string s = ss.str();
+
+	using namespace server;
+	HTTPHeader header = HTTPParser(s).Parse();
+
+	EXPECT_EQ(header.method, "GET");
+	EXPECT_EQ(header.url, URI);
+	EXPECT_EQ(header.body, "");
+	EXPECT_EQ(header.conentLenght, "");
 }

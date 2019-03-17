@@ -10,8 +10,8 @@ struct FConfig : public Archived
 {
 	GENERATED_BODY(FConfig, Archived);
 public:
-	void LoadFromFile(const std::string& file);
-	void SafeToFile(const std::string& file);
+	virtual void LoadFromFile(const std::string& file);
+	virtual void SafeToFile(const std::string& file);
 };
 
 

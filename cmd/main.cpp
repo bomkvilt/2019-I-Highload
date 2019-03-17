@@ -1,9 +1,11 @@
 #include <iostream>
 #include "iserver.hpp"
 
+
 int main(int argsc, char** argv)
 {
-	auto srv = server::IServer::Create(server::FServerConfig{});
+	auto config = server::FServerConfig();
+	config.LoadFromFile("./config.json");
 
-	printf("Hello world!");
+	auto srv = server::IServer::Create(server::FServerConfig{});
 }

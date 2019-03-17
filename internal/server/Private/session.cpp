@@ -42,7 +42,7 @@ namespace server
 			return;
 		}
 		auto request = FRequest(std::string_view{ buffer.data(), size }, config);
-		request.Parse(std::bind(&CSession::WriteString, this, std::placeholders::_1));
+		WriteString(request.Parse().ToString());
 	}
 
 	void CSession::HandleWrite(const boost::system::error_code& error, size_t size)
