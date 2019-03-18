@@ -2,20 +2,24 @@ FROM ubuntu:18.10
 
 WORKDIR /home/server
 
-RUN sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; \
-    sudo apt-get -y update; \
-    sudo apt-get -y install gcc-8 g++-8; \
-    sudo apt-get -y install libboost-all-dev; \
-    sudo update-alternatives --remove-all gcc; \
-    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-8;
+ENV DEBIAN_FRONTEND noninteractive
 
-ADD . .
+RUN apt-get update; \
+    apt-get install -y software-properties-common; \
+    add-apt-repository ppa:apt-fast/stable; \
+    apt-get -y install apt-fast; \
+    apt-fast update;
 
-RUN git clone --recurse-submodules -j8 https://github.com/bomkvilt/2019-I-Highload.git directory; \
-    cd ./directory; \
-    ./1_gen_project.sh; \
-    ./2_build_project.sh;
+RUN apt-fast install -y git cmake gcc-8 g++-8 libboost-all-dev; \
+    update-alternatives --remove-all gcc; \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-8;
 
-EXPOSE 8080
+RUN git clone --recursive https://github.com/bomkvilt/2019-I-Highload.git;
+RUN cd ./2019-I-Highload; \
+    git submodule update; \
+    /bin/bash ./1_gen_project.sh; \
+    /bin/bash ./2_build_project.sh;
+
+EXPOSE 80
 
 CMD ./3_run_project.sh
