@@ -22,4 +22,4 @@ RUN cd ./2019-I-Highload; \
 
 EXPOSE 80
 
-CMD ./3_run_project.sh
+CMD /bin/bash ./3_run_project.sh
