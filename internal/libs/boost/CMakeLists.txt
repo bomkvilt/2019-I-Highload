@@ -9,7 +9,7 @@ find_package(Boost REQUIRED
     regex)
 
 CreateUnit(Name boost
-    Libraries       ${Boost_LIBRARIES} 
+    Libraries       ${Boost_LIBRARIES}
     Public_includes ${Boost_INCLUDE_DIR}
     Definitions     -DBOOST_ALL_DYN_LINK -DBOOST_ALL_NO_LIB ${Boost_LIB_DIAGNOSTIC_DEFINITIONS}
     Mode            "headers"

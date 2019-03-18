@@ -3,6 +3,7 @@
 #pragma once
 
 #include <sstream>
+#include <iostream>
 
 /******************************************************************************
 *									Type2String
@@ -13,7 +14,9 @@ struct Type2Srting
 {
 	std::string operator()(_T& t)
 	{
-		static_assert(false);
+		// static_assert(false);
+		std::cout << "aaaaaaaaaaaa" << std::endl;;
+		return std::string();
 	}
 };
 
@@ -21,8 +24,9 @@ template<typename _T>
 struct Type2Srting<_T, false, false>
 {
 	std::string operator()(_T& t)
-	{
-		return (std::ostringstream() << t).str();
+	{	// in fucked g++ and clang << return unspecified stream...
+		auto ss = std::stringstream();
+		return ( ss << t), ss.str();
 	}
 };
 
@@ -70,7 +74,8 @@ struct String2Type
 {
 	void operator()(_T& t, const std::string& str)
 	{
-		static_assert(false);
+		std::cout << "aaaaaaaaaaaa" << std::endl;;
+		// static_assert(false);
 	}
 };
 

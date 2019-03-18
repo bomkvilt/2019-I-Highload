@@ -97,7 +97,7 @@ pt::ptree ArchiveTree(Archiver::Node& node)
 
 	for (auto& child : node.children)
 	{
-		auto& name   = ShieldCategory(child->name);
+		auto name    = ShieldCategory(child->name);
 		auto subtree = ArchiveTree(*child.get());
 		tree.add_child(name, subtree);
 	}

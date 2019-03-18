@@ -2,6 +2,7 @@
 #define ARCHIVER_HPP
 #pragma once
 
+#include <vector>
 #include <string>
 #include <sstream>
 #include <algorithm>

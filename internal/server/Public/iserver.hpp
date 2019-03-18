@@ -34,7 +34,7 @@ namespace server
 
 		virtual void Start() = 0;
 
-		~IServer() = default;
+		virtual ~IServer() = default;
 	};
 }
 

@@ -9,7 +9,7 @@ set(UN_bTests on)
 SetupEvniroment()
 CreateSolution("Highload")
 #~~~~~~~~~~~~~~~~~~~~~~~| >>  |
-SUBDIRS(internal)
-SUBDIRS(cmd     )
+ADD_SUBDIRECTORY(internal)
+ADD_SUBDIRECTORY(cmd     )
 #~~~~~~~~~~~~~~~~~~~~~~~| >>  |
 ProcessSolution()
