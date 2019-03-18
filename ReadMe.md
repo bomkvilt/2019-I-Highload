@@ -14,7 +14,6 @@ sudo update-alternatives --config gcc
 
 sudo apt-get install git libboost-all-dev
 
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 70 --slave /usr/bin/g++ g++ /usr/bin/g++-7
 
 git clone --recurse-submodules -j8 https://github.com/bomkvilt/2019-I-Highload.git
 
