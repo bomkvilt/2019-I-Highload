@@ -5,7 +5,7 @@ include("cmake/setup.cmake")
 include("cmake_boggart/boggart.cmake")
 
 set(UN_bDebug off)
-set(UN_bTests off)
+set(UN_bTests on)
 SetupEvniroment()
 CreateSolution("Highload")
 #~~~~~~~~~~~~~~~~~~~~~~~| >>  |
