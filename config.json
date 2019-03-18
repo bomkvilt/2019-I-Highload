@@ -2,6 +2,6 @@
     "port": "80",
     "threads": "8",
     "fileDirectory" : ".",
-    "defaultURI": "config.json",
+    "defaultURI": "index.html",
     "mainConfig": "/etc/httpd.conf"
 }
