@@ -4,7 +4,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 include("cmake/setup.cmake")
 include("cmake_boggart/boggart.cmake")
 
-set(UN_bDebug off)
+set(UN_bDebug on)
 set(UN_bTests on)
 SetupEvniroment()
 CreateSolution("Highload")

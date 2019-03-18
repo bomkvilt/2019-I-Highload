@@ -78,17 +78,17 @@ namespace server
 		return FResponse::C405;
 	}
 	
-	std::tuple<fs::path, bool> FRequest::GetPath(std::string_view relativePath)
+	std::tuple<std::string, bool> FRequest::GetPath(std::string_view relativePath)
 	{
 		auto root = fs::path(config.fileDirectory);
 		auto path = fs::path(config.fileDirectory + std::string(relativePath));
 		for (auto&& dir : fs::relative(path, root))
 		{
-			if (dir == "..")
+			if (dir == L"..")
 			{
-				return { path, false };
+				return { "", false };
 			}
 		}
-		return { path, true };
+		return { config.fileDirectory + std::string(relativePath), true };
 	}
 } //!server

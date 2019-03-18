@@ -20,7 +20,7 @@ namespace server
 		FResponse OnHead();
 		FResponse OnUnknownMethed();
 
-		std::tuple<fs::path, bool> GetPath(std::string_view relativePath);
+		std::tuple<std::string, bool> GetPath(std::string_view relativePath);
 
 	private:
 		std::string header_url; //!< RAII for updated @header.url
