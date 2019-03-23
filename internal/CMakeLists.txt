@@ -1,5 +1,8 @@
-ADD_SUBDIRECTORY(libs/boost)
-ADD_SUBDIRECTORY(common)
-ADD_SUBDIRECTORY(reflect)
-ADD_SUBDIRECTORY(configs)
-ADD_SUBDIRECTORY(server)
+GN_Subprojects(
+    libs/boost
+    libs/date
+    libs/mmap
+    common
+    reflect
+    configs
+    server)

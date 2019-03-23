@@ -41,8 +41,8 @@ namespace server
 			Stop();
 			return;
 		}
-		auto request = FRequest(std::string_view{ buffer.data(), size }, config);
-		WriteString(request.Parse().ToString());
+		output = FRequest(std::string_view{ buffer.data(), size }, config).Parse().ToString();
+		WriteString(output);
 	}
 
 	void CSession::HandleWrite(const boost::system::error_code& error, size_t size)
@@ -52,12 +52,23 @@ namespace server
 			Stop();
 			return;
 		}
+		WriteString(output);
 	}
 
 	void CSession::WriteString(std::string_view string)
 	{
+		if (offset >= output.size())
+		{
+			return;
+		}
+
+		auto begin = offset;
+		auto count = string.length() - offset;
+		count = count < filePartSize ? count : filePartSize;
+		offset += filePartSize;
+
 		socket.async_write_some(
-			asio::buffer(string),
+			asio::buffer(string.substr(begin, count)),
 			boost::bind(&CSession::HandleWrite, shared_from_this(),
 				boost::asio::placeholders::error,
 				boost::asio::placeholders::bytes_transferred)

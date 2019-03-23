@@ -8,9 +8,9 @@ namespace server
 		return *this;
 	}
 
-	FResponse& FResponse::SetDescription(std::string newDescription)
+	FResponse& FResponse::SetStatus(std::string newDescription)
 	{
-		description = std::move(newDescription);
+		status = std::move(newDescription);
 		return *this;
 	}
 
@@ -21,38 +21,34 @@ namespace server
 	}
 	
 	FResponse& FResponse::SetBody(std::string newBody)
-	{
-		body = std::move(newBody);
+	{ 
+		body = (body_data = std::move(newBody));
 		return SetHeader("Content-Length", std::to_string(body.length()));
 	}
 
+	FResponse& FResponse::SetBody(std::string_view newBody)
+	{
+		body = newBody;
+		return SetHeader("Content-Length", std::to_string(body.length()));
+	}
 
-	const FResponse FResponse::C200 = FResponse
+	std::string FResponse::ToString() const
 	{
-		  200
-		, "OK"
-		, {}
-		, ""
-	};
-	const FResponse FResponse::C403 = FResponse
-	{
-		  403
-		, "Forbidden"
-		, {}
-		, ""
-	};
-	const FResponse FResponse::C404 = FResponse
-	{
-		  404
-		, "Not Found"
-		, {}
-		, ""
-	};
-	const FResponse FResponse::C405 = FResponse
-	{
-		  405
-		, "Method Not Allowed"
-		, {}
-		, ""
-	};
+		static const auto LINE = "\r\n";
+		std::stringstream ss;
+		ss << "HTTP/1.1 " << code << " " << status << LINE;
+		for (auto&& [key, value] : headers)
+		{
+			ss << key << ": " << value << LINE;
+		}
+		ss << LINE;
+		ss << body;
+		return ss.str();
+	}
+
+
+	const FResponse FResponse::C200 = FResponse { 200, "OK"					, {}, "", "" };
+	const FResponse FResponse::C403 = FResponse { 403, "Forbidden"			, {}, "", "" };
+	const FResponse FResponse::C404 = FResponse { 404, "Not Found"			, {}, "", "" };
+	const FResponse FResponse::C405 = FResponse { 405, "Method Not Allowed"	, {}, "", "" };
 }

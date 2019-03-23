@@ -2,7 +2,7 @@
 #define SERVER_COMMON_HPP
 #pragma once
 
-// #include <filesystem>
+#include <filesystem>
 #include <string_view>
 
 #include "iserver.hpp"
@@ -21,7 +21,7 @@ namespace server
 		const std::string HEAD = "HEAD";
 	}
 
-	namespace fs	  = boost::filesystem;
+	namespace fs	  = std::filesystem;
 	namespace asio    = boost::asio;
 	using SSTcp       = asio::ip::tcp;
 	using SSAcceptor  = SSTcp::acceptor;

@@ -1,15 +1,17 @@
 cmake_minimum_required(VERSION 3.0)
 #~~~~~~~~~~~~~~~~~~~~~~~| >>  |
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH}) 
 include("cmake/setup.cmake")
-include("cmake_boggart/boggart.cmake")
+include("cmake/gremlin/gremlin.cmake")
 
-set(UN_bDebug off)
-set(UN_bTests on)
+set(GN_bDebug off)
+set(GN_bTests on)
+set(GN_bUnity on)
 SetupEvniroment()
-CreateSolution("Highload")
+GN_Solutoin("Highload")
+
 #~~~~~~~~~~~~~~~~~~~~~~~| >>  |
-ADD_SUBDIRECTORY(internal)
-ADD_SUBDIRECTORY(cmd     )
+GN_Subprojects(
+    internal
+    cmd)
 #~~~~~~~~~~~~~~~~~~~~~~~| >>  |
-ProcessSolution()
+GN_Configure()

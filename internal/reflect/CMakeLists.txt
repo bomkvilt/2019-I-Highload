@@ -1,4 +1,4 @@
-CreateUnit(Name reflect
+GB_Module( reflect
     Modules 
         common 
         boost)

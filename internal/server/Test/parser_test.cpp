@@ -4,7 +4,7 @@
 #define SERVER_PAERSER_TESTS server_parser_tests
 
 
-TEST(SERVER_PAERSER_TESTS, parser_simple) 
+TEST(SERVER_PAERSER_TESTS, simple) 
 {
 	const std::string body = "binary body:jhabjkcnm kjOFKVMSD ZVNSLD ZVBZK NAKVJKZJDN MZ KJLC" HTTP_LINE;
 	const std::string URI = "/tutorials/other/top-20-mysql-best-practices/";
@@ -23,7 +23,6 @@ TEST(SERVER_PAERSER_TESTS, parser_simple)
 	ss << "Cache-Control: no-cache" << HTTP_LINE;
 	ss << "Content-Length: 350" << HTTP_LINE;
 	ss << HTTP_LINE;
-	ss << HTTP_LINE;
 	ss << body;
 	const std::string s = ss.str();
 
@@ -33,17 +32,14 @@ TEST(SERVER_PAERSER_TESTS, parser_simple)
 	EXPECT_EQ(header.method	, "GET"	);
 	EXPECT_EQ(header.url	, URI	);
 	EXPECT_EQ(header.body	, body	);
-	EXPECT_EQ(header.conentLenght, "350");
 }
 
-TEST(SERVER_PAERSER_TESTS, parser_no_body)
+TEST(SERVER_PAERSER_TESTS, no_body)
 {
-	const std::string body = "binary body:jhabjkcnm kjOFKVMSD ZVNSLD ZVBZK NAKVJKZJDN MZ KJLC" HTTP_LINE;
 	const std::string URI = "/tutorials/other/top-20-mysql-best-practices/";
 	std::stringstream ss;
 	ss << "GET " << URI << " HTTP/1.1" << HTTP_LINE;
 	ss << "Host: net.tutsplus.com" << HTTP_LINE;
-	ss << HTTP_LINE;
 	ss << HTTP_LINE;
 	const std::string s = ss.str();
 
@@ -53,12 +49,10 @@ TEST(SERVER_PAERSER_TESTS, parser_no_body)
 	EXPECT_EQ(header.method, "GET");
 	EXPECT_EQ(header.url, URI);
 	EXPECT_EQ(header.body, "");
-	EXPECT_EQ(header.conentLenght, "");
 }
 
-TEST(SERVER_PAERSER_TESTS, parser_no_sepparation)
+TEST(SERVER_PAERSER_TESTS, no_sepparation)
 {
-	const std::string body = "binary body:jhabjkcnm kjOFKVMSD ZVNSLD ZVBZK NAKVJKZJDN MZ KJLC" HTTP_LINE;
 	const std::string URI = "/tutorials/other/top-20-mysql-best-practices/";
 	std::stringstream ss;
 	ss << "GET " << URI << " HTTP/1.1" << HTTP_LINE;
@@ -71,5 +65,36 @@ TEST(SERVER_PAERSER_TESTS, parser_no_sepparation)
 	EXPECT_EQ(header.method, "GET");
 	EXPECT_EQ(header.url, URI);
 	EXPECT_EQ(header.body, "");
-	EXPECT_EQ(header.conentLenght, "");
+}
+
+TEST(SERVER_PAERSER_TESTS, empty_request)
+{
+	using namespace server;
+	HTTPHeader header = HTTPParser("").Parse();
+
+	EXPECT_EQ(header.method, "");
+	EXPECT_EQ(header.url, "");
+	EXPECT_EQ(header.body, "");
+}
+
+TEST(SERVER_PAERSER_TESTS, with_query)
+{
+	std::stringstream ss;
+	ss << "GET /tutorials/other/top-20-mysql-best-practices/?params=mongo HTTP/1.1" << HTTP_LINE;
+	ss << "Host: net.tutsplus.com" << HTTP_LINE;
+	const std::string s = ss.str();
+
+	using namespace server;
+	HTTPHeader header = HTTPParser(s).Parse();
+
+	EXPECT_EQ(header.url, "/tutorials/other/top-20-mysql-best-practices/");
+	EXPECT_EQ(header.query, "params=mongo");
+}
+
+TEST(SERVER_PAERSER_TESTS, with_spaces)
+{
+	using namespace server;
+	HTTPHeader header = HTTPParser("GET /tutorials/other%20dirs/ HTTP/1.1").Parse();
+
+	EXPECT_EQ(header.url, "/tutorials/other dirs/");
 }

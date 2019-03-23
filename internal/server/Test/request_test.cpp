@@ -8,20 +8,23 @@ struct server_request_tests : testing::Test
 	void SetUp() override
 	{
 		config.fileDirectory = ".";
-		config.defaultURI = "main.txt";
-
-		auto test_txt = std::ofstream("test.txt", std::ios::out);
-		assert(test_txt.is_open()); test_txt << test_txt_text; test_txt.close();
-
-		auto main_txt = std::ofstream("main.txt", std::ios::out);
-		assert(main_txt.is_open()); main_txt << main_txt_text; main_txt.close();
+		config.defaultURI = "__request_main.txt";
 	}
 
 	void TearDown() override
+	{}
+
+	static struct A
 	{
-		server::fs::remove(server::fs::path("test.txt"));
-		server::fs::remove(server::fs::path("main.txt"));
-	}
+		A()
+		{
+			auto test_txt = std::ofstream("__request_test.txt", std::ios::out);
+			assert(test_txt.is_open()); test_txt << test_txt_text; test_txt.close();
+
+			auto main_txt = std::ofstream("__request_main.txt", std::ios::out);
+			assert(main_txt.is_open()); main_txt << main_txt_text; main_txt.close();
+		}
+	} a;
 
 	std::string ConstructRequest(std::string_view method, std::string_view url)
 	{
@@ -41,52 +44,54 @@ public:
 
 	server::FServerConfig config;
 
-	const std::string test_txt_text = "aa";
-	const std::string main_txt_text = "bb";
+	constexpr static std::string_view test_txt_text = "aa";
+	constexpr static std::string_view main_txt_text = "bb";
 };
 
+server_request_tests::A server_request_tests::a;
 
-TEST_F(server_request_tests, request_simple_get)
+
+TEST_F(server_request_tests, simple_get)
 {	// inallowed method
-	auto response = GetResponse("/test.txt", "GET");
+	auto response = GetResponse("/__request_test.txt", "GET");
 	EXPECT_EQ(response.code, 200);
 	EXPECT_EQ(response.body, test_txt_text);
 }
 
-TEST_F(server_request_tests, request_simple_head)
+TEST_F(server_request_tests, simple_head)
 {	// inallowed method
-	auto response = GetResponse("/test.txt", "HEAD");
+	auto response = GetResponse("/__request_test.txt", "HEAD");
 	EXPECT_EQ(response.code, 200);
 	EXPECT_EQ(response.body, "");
 }
 
-TEST_F(server_request_tests, request_default_path)
+TEST_F(server_request_tests, default_path)
 {	// inallowed method
 	auto response = GetResponse("/");
 	EXPECT_EQ(response.code, 200);
 	EXPECT_EQ(response.body, main_txt_text);
 }
 
-TEST_F(server_request_tests, request_inallowed_method)
+TEST_F(server_request_tests, inallowed_method)
 {	// inallowed method
-	auto response = GetResponse("/../test.txt", "POST");
+	auto response = GetResponse("/../__request_test.txt", "POST");
 	EXPECT_EQ(response.code, 405);
 }
 
-TEST_F(server_request_tests, request_out_of_direcory_1)
+TEST_F(server_request_tests, out_of_direcory_1)
 {	// path out of directory
-	auto response = GetResponse("/../test.txt");
+	auto response = GetResponse("/../__request_test.txt");
 	EXPECT_EQ(response.code, 403);
 }
 
-TEST_F(server_request_tests, request_out_of_direcory_2)
+TEST_F(server_request_tests, out_of_direcory_2)
 {	// path out of directory
-	auto response = GetResponse("/main/../../test.txt");
+	auto response = GetResponse("/main/../../__request_test.txt");
 	EXPECT_EQ(response.code, 403);
 }
 
-TEST_F(server_request_tests, request_out_of_direcory_3)
+TEST_F(server_request_tests, out_of_direcory_3)
 {	// .. must be allowed
-	auto response = GetResponse("/main/../test.txt");
+	auto response = GetResponse("/main/../__request_test.txt");
 	EXPECT_EQ(response.code, 200);
 }

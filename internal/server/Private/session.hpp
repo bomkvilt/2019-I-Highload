@@ -38,12 +38,13 @@ namespace server
 		SSTcp::socket socket;
 
 		enum {
-			filePartSize = 16384
+			filePartSize = 1024
 			, bufferSize = 1024
 		};
 		std::array<char, bufferSize> buffer;
-
-		ptrdiff_t offset;
+		
+		std::string output;
+		size_t      offset;
 	};
 }
 

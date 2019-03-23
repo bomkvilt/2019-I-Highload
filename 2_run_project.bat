@@ -1,5 +1,5 @@
 @echo off
-pushd build_windows
+pushd "./build/windows"
 for %%f in (*.sln) do (
     start %%f
 )

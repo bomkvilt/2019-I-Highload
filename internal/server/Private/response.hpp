@@ -13,31 +13,20 @@ namespace server
 		using SSHeaders = std::unordered_map<std::string, std::string>;
 
 	public:
-		int			code		= 200;
-		std::string description	= "OK";
-		SSHeaders	headers;
-		std::string body;
+		int					code	= 200;
+		std::string			status	= "OK";
+		SSHeaders			headers	= {};
+		std::string_view	body	= {};
+		std::string body_data = {};
 
 	public:
 		FResponse& SetCode(int newCode);
-		FResponse& SetDescription(std::string newDescription);
+		FResponse& SetStatus(std::string newDescription);
 		FResponse& SetHeader(const std::string& key, std::string value);
-		FResponse& SetBody(std::string newBody);
+		FResponse& SetBody(std::string      newBody);
+		FResponse& SetBody(std::string_view newBody);
 
-		std::string ToString() const
-		{
-			static const auto LINE = "\r\n";
-			std::stringstream ss;
-			ss << "HTTP/1.1 " << code << " " << description << LINE;
-			for (auto&& [key, value] : headers)
-			{
-				ss << key << ": " << value << LINE;
-			}
-			ss << LINE;
-			ss << LINE;
-			ss << body;
-			return ss.str();
-		}
+		std::string ToString() const;
 
 	public:
 		const static FResponse C200;

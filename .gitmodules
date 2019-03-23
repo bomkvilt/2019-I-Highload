@@ -1,3 +1,0 @@
-[submodule "cmake_boggart"]
-	path = cmake_boggart
-	url = https://github.com/bomkvilt/cmake_boggart.git

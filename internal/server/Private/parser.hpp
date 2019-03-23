@@ -9,22 +9,24 @@ namespace server
 	struct HTTPHeader
 	{
 		std::string_view url;
+		std::string_view query;
 		std::string_view method;
-		std::string_view conentLenght;
 		std::string_view body;
+	private:
+		friend class HTTPParser;
+		std::string decoded;
 	};
 
 
-	class HTTPParser
+	class HTTPParser final
 	{
 		enum EParsePhase
 		{
-			eMethod
+			  eMethod
 			, eURI
-			, eVersion
+			, eProto
 			, eKey
 			, eValue
-			, eEmptyLine
 		};
 	public:
 		HTTPParser(std::string_view ss);
@@ -33,6 +35,9 @@ namespace server
 
 	private:
 		std::string_view NextToken();
+
+		void             ParseURL (HTTPHeader& header, std::string_view token);
+		std::string_view DecodeURL(HTTPHeader& header, std::string_view token);
 
 	private:
 		bool bValue;
